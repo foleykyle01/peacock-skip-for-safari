@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Peacock Skip for Safari",
+  "version": "1.0.0",
+  "description": "Automatic skipping for Peacock, built for Safari with zero tracking.",
+  "action": {
+    "default_icon": "ToolbarIcon71.png",
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "36": "ToolbarIcon36.png",
+    "71": "ToolbarIcon71.png"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.peacocktv.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.peacocktv.com/*"
+      ],
+      "js": [
+        "preferences.js",
+        "playback.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

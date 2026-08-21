@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Peacock Skip for Safari</title>
+  <desc id="desc">A white skip symbol above six small colored dots on a dark rounded square.</desc>
+  <rect x="64" y="64" width="896" height="896" rx="224" fill="#121318"/>
+  <path d="M326 292 L582 512 L326 732" fill="none" stroke="#FFFFFF" stroke-width="92" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="660" y="292" width="88" height="440" rx="44" fill="#FFFFFF"/>
+  <circle cx="322" cy="830" r="15" fill="#F5C344"/>
+  <circle cx="398" cy="830" r="15" fill="#EF8A3D"/>
+  <circle cx="474" cy="830" r="15" fill="#E35169"/>
+  <circle cx="550" cy="830" r="15" fill="#A657AD"/>
+  <circle cx="626" cy="830" r="15" fill="#4C86F7"/>
+  <circle cx="702" cy="830" r="15" fill="#43B9AA"/>
+</svg>

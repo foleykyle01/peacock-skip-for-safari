@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="popup.css">
+    <title>Peacock Skip for Safari</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="spectrum" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="header">
+            <a href="https://www.peacocktv.com" target="_blank" rel="noreferrer" class="headerIcon">
+                <img src="./ToolbarIcon36.png" alt="Peacock Skip for Safari">
+            </a>
+            <div>
+                <div class="headerText">Peacock Skip for Safari</div>
+                <div class="headerSubtext">Automatic skipping. Zero tracking.</div>
+            </div>
+        </div>
+        <div class="form">
+            <div class="smallContainer">
+                <div>
+                    <div class="label">Skip recaps</div>
+                    <div class="hint">Dismiss recap prompts</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" name="Recaps" id="Recaps" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="smallContainer">
+                <div>
+                    <div class="label">Skip intros</div>
+                    <div class="hint">Dismiss intro prompts</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" name="Intros" id="Intros" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="smallContainer">
+                <div>
+                    <div class="label">Play next episode</div>
+                    <div class="hint">Continue automatically</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" name="NextEpisode" id="NextEpisode" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="smallContainer">
+                <div>
+                    <div class="label">Skip ads</div>
+                    <div class="hint">Advance through detected breaks</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" name="SkipAds" id="SkipAds" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        <div class="footer">
+            <span class="privacyDot" aria-hidden="true"></span>
+            Safari-only. Your settings stay on this Mac.
+        </div>
+    </div>
+    <script src="preferences.js"></script>
+    <script src="popup.js"></script>
+</body>
+
+</html>
