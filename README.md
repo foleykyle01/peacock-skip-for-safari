@@ -4,6 +4,16 @@
 
 Peacock Skip for Safari is a lightweight macOS Safari extension that handles common playback interruptions on Peacock. It runs entirely inside Safari on your Mac and does not collect or transmit viewing activity, account information, or website content.
 
+## Download
+
+**[Download the latest signed and notarized release](https://github.com/foleykyle01/peacock-skip-for-safari/releases/latest/download/Peacock-Skip-for-Safari.dmg)**
+
+Requires macOS 13 or later and Safari. The download is signed with an Apple Developer ID and notarized by Apple.
+
+1. Open the downloaded disk image and drag **Peacock Skip for Safari** to **Applications**.
+2. Open the app once, then choose **Safari → Settings → Extensions**.
+3. Enable **Peacock Skip for Safari** and allow access to Peacock when Safari asks.
+
 ## Features
 
 - Skip intro prompts.
@@ -29,7 +39,7 @@ See [PRIVACY.md](PRIVACY.md) for the complete data boundary.
 
 No permission grants access to unrelated websites.
 
-## Install from source
+## Build from source
 
 1. Open `Peacock Skip for Safari/Peacock Skip for Safari.xcodeproj` in Xcode.
 2. Select your Apple development team for both the app and extension targets. If needed, replace the sample bundle identifiers with identifiers owned by your team.

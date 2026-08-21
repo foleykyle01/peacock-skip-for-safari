@@ -5,4 +5,6 @@ build/
 xcuserdata/
 .DS_Store
 *.zip
+*.dmg
+dist/
 .swiftpm/
