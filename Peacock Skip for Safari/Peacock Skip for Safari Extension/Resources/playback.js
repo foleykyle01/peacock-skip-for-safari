@@ -28,7 +28,18 @@
         return Math.max(0, Math.min(proposedJump, durationLimit))
     }
 
-    const playback = Object.freeze({ countdownSeconds, adJump })
+    function shortAdRemaining({ currentTime, duration, maximumDuration = 180 }) {
+        if (!Number.isFinite(currentTime)
+            || !Number.isFinite(duration)
+            || duration <= currentTime
+            || duration > maximumDuration) {
+            return 0
+        }
+
+        return duration - currentTime
+    }
+
+    const playback = Object.freeze({ countdownSeconds, adJump, shortAdRemaining })
     globalThis.PeacockSkipPlayback = playback
 
     if (typeof module === "object" && module.exports) {

@@ -41,7 +41,7 @@ The toolbar button is optional after configuration. To hide it, Control-click Sa
 
 ## How it works
 
-Safari injects two small scripts only on Peacock pages. `preferences.js` owns the local settings. `content.js` watches the page for playback-interface changes and responds to enabled controls. The extension clicks Peacock's own intro, recap, and next-episode controls. For detected ads, it reads the visible countdown and seeks near its end with a safety buffer.
+Safari injects three small scripts only on Peacock pages. `preferences.js` owns the local settings, `playback.js` contains tested timing calculations, and `content.js` watches the page for playback-interface changes and keyboard seeks. The extension clicks Peacock's own intro, recap, and next-episode controls. For detected ads, it seeks near the end of a visible countdown. If keyboard seeking starts an ad without rendering the countdown, it uses the duration of a short ad video or temporarily accelerates a server-enforced ad, then restores the user's normal playback speed.
 
 The host macOS app exists only to install and manage the Safari web extension. It does not perform playback automation and does not have an outgoing-network entitlement.
 

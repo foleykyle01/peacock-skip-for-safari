@@ -26,3 +26,9 @@ test("does not seek beyond the video duration", () => {
     assert.equal(playback.adJump({ remaining: 30, currentTime: 95, duration: 100 }), 4.9)
     assert.equal(playback.adJump({ remaining: 0, currentTime: 10, duration: 100 }), 0)
 })
+
+test("uses a short ad video's duration when no countdown is rendered", () => {
+    assert.equal(playback.shortAdRemaining({ currentTime: 8, duration: 30 }), 22)
+    assert.equal(playback.shortAdRemaining({ currentTime: 8, duration: 3600 }), 0)
+    assert.equal(playback.shortAdRemaining({ currentTime: 30, duration: 30 }), 0)
+})
