@@ -1,26 +1,49 @@
-# Peacock Skip for Safari
+<p align="center">
+  <img src="Brand/peacock-skip-for-safari-icon.svg" width="152" alt="Peacock Skip for Safari logo">
+</p>
 
-**Automatic skipping. Zero tracking. Built for Safari.**
+<h1 align="center">Peacock Skip for Safari</h1>
 
-Peacock Skip for Safari is a lightweight macOS Safari extension that handles common playback interruptions on Peacock. It runs entirely inside Safari on your Mac and does not collect or transmit viewing activity, account information, or website content.
+<p align="center"><strong>Automatic skipping. Zero tracking. Built for Safari.</strong></p>
 
-## Download
+<p align="center">
+  A small macOS extension that keeps Peacock playback moving without sending your viewing activity anywhere.
+</p>
 
-**[Download the latest signed and notarized release](https://github.com/foleykyle01/peacock-skip-for-safari/releases/latest/download/Peacock-Skip-for-Safari.dmg)**
+<p align="center">
+  <a href="https://github.com/foleykyle01/peacock-skip-for-safari/releases/latest/download/Peacock-Skip-for-Safari.dmg"><strong>Download for macOS</strong></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/foleykyle01/peacock-skip-for-safari/releases/latest">Release notes</a>
+  &nbsp;·&nbsp;
+  <a href="PRIVACY.md">Privacy</a>
+</p>
 
-Requires macOS 13 or later and Safari. The download is signed with an Apple Developer ID and notarized by Apple.
+<p align="center">
+  <code>macOS 13+</code>&nbsp;&nbsp;<code>Apple silicon + Intel</code>&nbsp;&nbsp;<code>MIT</code>
+</p>
 
-1. Open the downloaded disk image and drag **Peacock Skip for Safari** to **Applications**.
+---
+
+## Built to stay out of the way
+
+Peacock Skip for Safari handles the repetitive playback controls and then disappears into the browser. Configure it once from the toolbar; the button can be removed afterward without disabling the extension.
+
+| Handles | What it does |
+| --- | --- |
+| **Intros and recaps** | Activates Peacock's visible skip controls automatically. |
+| **Next episode** | Continues when Peacock presents the next-episode prompt. |
+| **Ad breaks** | Advances detected countdowns when seeking is available and recovers when keyboard seeking enters an ad without showing the timer. |
+| **Your preferences** | Lets you turn each behavior on or off independently. |
+
+## Install in under a minute
+
+**[Download the signed and notarized disk image →](https://github.com/foleykyle01/peacock-skip-for-safari/releases/latest/download/Peacock-Skip-for-Safari.dmg)**
+
+1. Open the disk image and drag **Peacock Skip for Safari** to **Applications**.
 2. Open the app once, then choose **Safari → Settings → Extensions**.
 3. Enable **Peacock Skip for Safari** and allow access to Peacock when Safari asks.
 
-## Features
-
-- Skip intro prompts.
-- Skip recap prompts.
-- Continue to the next episode.
-- Advance through detected ad countdowns when Peacock permits seeking.
-- Turn every behavior on or off from a compact Safari toolbar popup.
+The download is signed with an Apple Developer ID and notarized by Apple. The toolbar button is optional after configuration: Control-click Safari's toolbar, choose **Customize Toolbar**, and remove it.
 
 ## Privacy
 
@@ -29,6 +52,10 @@ The extension has no analytics, telemetry, trackers, accounts, remote configurat
 During playback, the content script reads a small set of Peacock page elements and the current video position so it can click visible controls or advance a detected ad. That information is used transiently on the page and is never retained or transmitted by the extension.
 
 See [PRIVACY.md](PRIVACY.md) for the complete data boundary.
+
+| Runs on | Stores locally | Sends externally |
+| --- | --- | --- |
+| Peacock pages only | Four on/off preferences | Nothing |
 
 ## Permissions
 
@@ -46,8 +73,6 @@ No permission grants access to unrelated websites.
 3. Build and run the **Peacock Skip for Safari** scheme.
 4. Open **Safari → Settings → Extensions** and enable **Peacock Skip for Safari**.
 5. Allow access to Peacock when Safari asks.
-
-The toolbar button is optional after configuration. To hide it, Control-click Safari's toolbar, choose **Customize Toolbar**, and remove the button. The enabled extension will continue working on Peacock.
 
 ## How it works
 
