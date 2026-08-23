@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Peacock Skip for Safari",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Automatic skipping for Peacock, built for Safari with zero tracking.",
   "action": {
     "default_icon": "ToolbarIcon71.png",
