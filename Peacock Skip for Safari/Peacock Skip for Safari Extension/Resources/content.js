@@ -13,12 +13,18 @@
 
     const clicked = new WeakSet()
     const watchedVideos = new WeakSet()
+    const AD_SESSION_RESET_DELAY = 1500
+    const AD_POLL_INTERVAL = 500
+    const ACCELERATED_AD_POLL_INTERVAL = 100
+    const PLAYBACK_RATE_RESTORE_WINDOW = 1.5
     let preferences = PeacockSkipPreferences.DEFAULTS
     let scanTimer = null
     let adPollTimer = null
+    let adPollInterval = null
     let followUpTimers = []
     let acceleratedPlayback = null
-    let lastAdAction = { element: null, timestamp: 0 }
+    let activeAdSession = null
+    let adInactiveSince = 0
 
     function isVisible(element) {
         if (!element) {
@@ -65,12 +71,20 @@
         acceleratedPlayback = null
     }
 
-    function setAdPolling(enabled) {
+    function setAdPolling(enabled, interval = AD_POLL_INTERVAL) {
+        if (enabled && adPollTimer !== null && adPollInterval !== interval) {
+            clearInterval(adPollTimer)
+            adPollTimer = null
+            adPollInterval = null
+        }
+
         if (enabled && adPollTimer === null) {
-            adPollTimer = setInterval(scanPage, 750)
+            adPollInterval = interval
+            adPollTimer = setInterval(scanPage, interval)
         } else if (!enabled && adPollTimer !== null) {
             clearInterval(adPollTimer)
             adPollTimer = null
+            adPollInterval = null
         }
     }
 
@@ -80,23 +94,52 @@
             acceleratedPlayback = {
                 video,
                 originalRate: Number.isFinite(video.playbackRate) ? video.playbackRate : 1,
+                lastCurrentTime: video.currentTime,
             }
         }
 
         try {
-            video.playbackRate = 16
+            video.playbackRate = 4
         } catch {
-            try {
-                video.playbackRate = 4
-            } catch {
-                return
-            }
+            return
         }
 
         if (video.paused) {
             video.play().catch(() => {})
         }
-        setAdPolling(true)
+        setAdPolling(true, ACCELERATED_AD_POLL_INTERVAL)
+    }
+
+    function sessionFor(video) {
+        if (!activeAdSession || activeAdSession.video !== video) {
+            restorePlaybackRate()
+            activeAdSession = { video, actionTaken: false }
+        }
+
+        return activeAdSession
+    }
+
+    function handleInactiveAdState() {
+        const now = Date.now()
+        restorePlaybackRate()
+
+        if (!activeAdSession) {
+            setAdPolling(false)
+            return
+        }
+
+        if (adInactiveSince === 0) {
+            adInactiveSince = now
+        }
+
+        if (now - adInactiveSince < AD_SESSION_RESET_DELAY) {
+            setAdPolling(true)
+            return
+        }
+
+        activeAdSession = null
+        adInactiveSince = 0
+        setAdPolling(false)
     }
 
     function scheduleSeekFollowUps() {
@@ -129,10 +172,12 @@
         const adIsActive = Boolean(countdown || adEvidence)
 
         if (!video || !adIsActive) {
-            restorePlaybackRate()
-            setAdPolling(false)
+            handleInactiveAdState()
             return
         }
+
+        adInactiveSince = 0
+        const adSession = sessionFor(video)
 
         activateFirst(UI.dismiss)
         activateFirst(UI.resume)
@@ -143,9 +188,30 @@
             duration: video.duration,
         })
 
-        const actionElement = countdown ?? adEvidence ?? video
-        const now = Date.now()
-        if (lastAdAction.element === actionElement && now - lastAdAction.timestamp < 1200) {
+        if (acceleratedPlayback?.video === video) {
+            const playbackRestarted = video.currentTime + 0.25 < acceleratedPlayback.lastCurrentTime
+            acceleratedPlayback.lastCurrentTime = video.currentTime
+
+            if (playbackRestarted || (remaining > 0 && remaining <= PLAYBACK_RATE_RESTORE_WINDOW)) {
+                restorePlaybackRate()
+            }
+        }
+
+        // One seek is enough for a visible ad break. Peacock can leave the same
+        // overlay mounted after that seek; acting on it again is what caused the
+        // extension to carry playback into the program.
+        if (adSession.actionTaken) {
+            setAdPolling(
+                true,
+                acceleratedPlayback ? ACCELERATED_AD_POLL_INTERVAL : AD_POLL_INTERVAL,
+            )
+            return
+        }
+
+        // Wait for a real countdown or short ad duration. Blindly accelerating
+        // a long-form video while stale ad UI is visible can skip program time.
+        if (remaining <= 0) {
+            setAdPolling(true)
             return
         }
 
@@ -155,15 +221,15 @@
             duration: video.duration,
         })
 
+        adSession.actionTaken = true
         if (jump <= 0.25) {
-            accelerateAd(video)
-            lastAdAction = { element: actionElement, timestamp: now }
+            restorePlaybackRate()
+            setAdPolling(true)
             return
         }
 
         restorePlaybackRate()
         setAdPolling(true)
-        lastAdAction = { element: actionElement, timestamp: now }
 
         try {
             video.currentTime += jump
@@ -193,6 +259,8 @@
             handleDetectedAd()
         } else {
             restorePlaybackRate()
+            activeAdSession = null
+            adInactiveSince = 0
             setAdPolling(false)
         }
     }
@@ -231,6 +299,8 @@
 
     addEventListener("pagehide", () => {
         restorePlaybackRate()
+        activeAdSession = null
+        adInactiveSince = 0
         setAdPolling(false)
     })
 

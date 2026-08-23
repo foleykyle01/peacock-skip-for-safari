@@ -19,7 +19,10 @@
             return 0
         }
 
-        const buffer = Math.min(1, Math.max(0.25, remaining * 0.08))
+        // Peacock's whole-second countdown can be slightly ahead of the media
+        // clock. Keep enough of the ad boundary intact that a seek cannot land
+        // in the first beat of the program.
+        const buffer = Math.min(2, Math.max(1, remaining * 0.1))
         const proposedJump = remaining - buffer
         const durationLimit = Number.isFinite(duration)
             ? Math.max(0, duration - currentTime - 0.1)

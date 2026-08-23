@@ -17,9 +17,10 @@ test("parses second and minute countdowns", () => {
     assert.equal(playback.countdownSeconds("Advertisement"), 0)
 })
 
-test("leaves a safety buffer at the end of an ad", () => {
-    assert.equal(playback.adJump({ remaining: 30, currentTime: 10, duration: 100 }), 29)
-    assert.equal(playback.adJump({ remaining: 5, currentTime: 10, duration: 100 }), 4.6)
+test("leaves a conservative safety buffer at the end of an ad", () => {
+    assert.equal(playback.adJump({ remaining: 30, currentTime: 10, duration: 100 }), 28)
+    assert.equal(playback.adJump({ remaining: 5, currentTime: 10, duration: 100 }), 4)
+    assert.equal(playback.adJump({ remaining: 1, currentTime: 10, duration: 100 }), 0)
 })
 
 test("does not seek beyond the video duration", () => {
