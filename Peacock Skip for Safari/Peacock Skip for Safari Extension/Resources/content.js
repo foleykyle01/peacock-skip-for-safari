@@ -15,6 +15,7 @@
     const watchedVideos = new WeakSet()
     const AD_SESSION_RESET_DELAY = 1500
     const AD_POLL_INTERVAL = 500
+    // Match Chrome 1.1.38's 50 ms pause-and-resume seek commit.
     const SEEK_COMMIT_DELAY = 50
     let preferences = PeacockSkipPreferences.DEFAULTS
     let scanTimer = null

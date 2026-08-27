@@ -32,7 +32,7 @@ Peacock Skip for Safari handles the repetitive playback controls and then disapp
 | --- | --- |
 | **Intros and recaps** | Activates Peacock's visible skip controls automatically. |
 | **Next episode** | Continues when Peacock presents the next-episode prompt. |
-| **Ad breaks** | Advances detected countdowns when seeking is available and recovers when keyboard seeking enters an ad without showing the timer. |
+| **Ad breaks** | Advances a detected countdown once per ad break when seeking is available, with short standalone ads as a fallback when no timer appears. |
 | **Your preferences** | Lets you turn each behavior on or off independently. |
 
 ## Install in under a minute
@@ -76,7 +76,7 @@ No permission grants access to unrelated websites.
 
 ## How it works
 
-Safari injects three small scripts only on Peacock pages. `preferences.js` owns the local settings, `playback.js` contains tested timing calculations, and `content.js` watches the page for playback-interface changes and keyboard seeks. The extension clicks Peacock's own intro, recap, and next-episode controls. For detected ads, it seeks near the end of a visible countdown. If keyboard seeking starts an ad without rendering the countdown, it can use the remaining duration of a short standalone ad video as a fallback. If Safari or Peacock rejects a seek, playback remains unchanged.
+Safari injects three small scripts only on Peacock pages. `preferences.js` owns the local settings, `playback.js` contains tested timing calculations, and `content.js` watches the page for playback-interface changes and keyboard seeks. The extension clicks Peacock's own intro, recap, and next-episode controls. For detected ads, it seeks once near the end of a visible countdown without changing the playback rate. If keyboard seeking starts an ad without rendering the countdown, it can use the remaining duration of a short standalone ad video as a fallback. Paused playback is left alone, and if Safari or Peacock rejects a seek, playback remains unchanged.
 
 The host macOS app exists only to install and manage the Safari web extension. It does not perform playback automation and does not have an outgoing-network entitlement.
 
@@ -89,7 +89,7 @@ node --check "Peacock Skip for Safari/Peacock Skip for Safari Extension/Resource
 node --check "Peacock Skip for Safari/Peacock Skip for Safari Extension/Resources/playback.js"
 node --check "Peacock Skip for Safari/Peacock Skip for Safari Extension/Resources/content.js"
 node --check "Peacock Skip for Safari/Peacock Skip for Safari Extension/Resources/popup.js"
-node --test Tests/playback.test.js
+node --test Tests/playback.test.js Tests/content.test.js
 xcodebuild -project "Peacock Skip for Safari/Peacock Skip for Safari.xcodeproj" -scheme "Peacock Skip for Safari" -configuration Debug CODE_SIGNING_ALLOWED=NO build
 ```
 
