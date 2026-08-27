@@ -6,7 +6,7 @@
         recap: '[aria-label="Skip Recap"]',
         nextEpisode: '[data-testid="autobinge-card"], [data-test-id="autobinge-card"], .playback-binge__card',
         countdown: '[data-testid="countdown"], [data-test-id="countdown"], .countdown__remaining-time, .ad-countdown__remaining-time',
-        adEvidence: '[aria-label*="advertisement" i], [data-testid="ad-overlay" i], [data-test-id="ad-overlay" i], [data-testid="ad-container" i], [data-test-id="ad-container" i], [data-testid^="ad-" i], [data-test-id^="ad-" i], .ad-overlay, .ad-container, [class*="ad-countdown"]',
+        adEvidence: '[aria-label*="advertisement" i], [data-testid="overlay"][data-visible="true"], [data-test-id="overlay"][data-visible="true"], [data-testid="ad-overlay" i], [data-test-id="ad-overlay" i], [data-testid="ad-container" i], [data-test-id="ad-container" i], [data-testid^="ad-" i], [data-test-id^="ad-" i], .ad-overlay, .ad-container, [class*="ad-countdown"], [class*="adBreakActive"]',
         dismiss: '[aria-label="Dismiss"], [label="Dismiss"]',
         resume: '[aria-label="Resume"], [label="Resume"]',
     })
@@ -15,14 +15,13 @@
     const watchedVideos = new WeakSet()
     const AD_SESSION_RESET_DELAY = 1500
     const AD_POLL_INTERVAL = 500
-    const ACCELERATED_AD_POLL_INTERVAL = 100
-    const PLAYBACK_RATE_RESTORE_WINDOW = 1.5
+    const SEEK_COMMIT_DELAY = 50
     let preferences = PeacockSkipPreferences.DEFAULTS
     let scanTimer = null
     let adPollTimer = null
     let adPollInterval = null
     let followUpTimers = []
-    let acceleratedPlayback = null
+    let ownedResume = null
     let activeAdSession = null
     let adInactiveSince = 0
 
@@ -57,18 +56,13 @@
         return true
     }
 
-    function restorePlaybackRate() {
-        if (!acceleratedPlayback) {
+    function cancelOwnedResume() {
+        if (!ownedResume) {
             return
         }
 
-        try {
-            acceleratedPlayback.video.playbackRate = acceleratedPlayback.originalRate
-        } catch {
-            // The ad video may already have been removed from the page.
-        }
-
-        acceleratedPlayback = null
+        clearTimeout(ownedResume.timer)
+        ownedResume = null
     }
 
     function setAdPolling(enabled, interval = AD_POLL_INTERVAL) {
@@ -88,31 +82,31 @@
         }
     }
 
-    function accelerateAd(video) {
-        if (acceleratedPlayback?.video !== video) {
-            restorePlaybackRate()
-            acceleratedPlayback = {
-                video,
-                originalRate: Number.isFinite(video.playbackRate) ? video.playbackRate : 1,
-                lastCurrentTime: video.currentTime,
-            }
+    function commitSeek(video, shouldResume) {
+        if (!shouldResume) {
+            return
         }
 
+        cancelOwnedResume()
         try {
-            video.playbackRate = 4
+            video.pause()
         } catch {
             return
         }
 
-        if (video.paused) {
+        const timer = setTimeout(() => {
+            if (ownedResume?.video !== video || ownedResume.timer !== timer) {
+                return
+            }
+
+            ownedResume = null
             video.play().catch(() => {})
-        }
-        setAdPolling(true, ACCELERATED_AD_POLL_INTERVAL)
+        }, SEEK_COMMIT_DELAY)
+        ownedResume = { video, timer }
     }
 
     function sessionFor(video) {
         if (!activeAdSession || activeAdSession.video !== video) {
-            restorePlaybackRate()
             activeAdSession = { video, actionTaken: false }
         }
 
@@ -121,7 +115,6 @@
 
     function handleInactiveAdState() {
         const now = Date.now()
-        restorePlaybackRate()
 
         if (!activeAdSession) {
             setAdPolling(false)
@@ -163,16 +156,48 @@
         }
     }
 
-    function handleDetectedAd() {
-        const video = document.querySelector("video")
-        watchVideo(video)
+    function shortAdRemaining(video) {
+        if (!video) {
+            return 0
+        }
 
+        return PeacockSkipPlayback.shortAdRemaining({
+            currentTime: video.currentTime,
+            duration: video.duration,
+        })
+    }
+
+    function selectAdVideo() {
+        const videos = Array.from(document.querySelectorAll("video"))
+        return videos.find((video) => !video.paused) ?? videos[0] ?? null
+    }
+
+    function handleDetectedAd() {
         const countdown = firstVisible(UI.countdown)
         const adEvidence = firstVisible(UI.adEvidence)
         const adIsActive = Boolean(countdown || adEvidence)
 
-        if (!video || !adIsActive) {
+        if (!adIsActive) {
             handleInactiveAdState()
+            return
+        }
+
+        // Chrome 1.1.38 intentionally seeks Peacock's active stitched timeline.
+        // The countdown is the boundary signal; duration alone is only a
+        // fallback for legacy ads rendered as a separate short video.
+        const video = selectAdVideo()
+        if (!video) {
+            setAdPolling(true)
+            return
+        }
+
+        watchVideo(video)
+
+        // Do not seek, accelerate, dismiss, or resume anything while the user
+        // has Peacock paused. Polling lets the same ad be handled after the user
+        // explicitly resumes playback without the extension owning play state.
+        if (video.paused) {
+            setAdPolling(true)
             return
         }
 
@@ -183,33 +208,19 @@
         activateFirst(UI.resume)
 
         const countdownRemaining = PeacockSkipPlayback.countdownSeconds(countdown?.textContent)
-        const remaining = countdownRemaining || PeacockSkipPlayback.shortAdRemaining({
-            currentTime: video.currentTime,
-            duration: video.duration,
-        })
-
-        if (acceleratedPlayback?.video === video) {
-            const playbackRestarted = video.currentTime + 0.25 < acceleratedPlayback.lastCurrentTime
-            acceleratedPlayback.lastCurrentTime = video.currentTime
-
-            if (playbackRestarted || (remaining > 0 && remaining <= PLAYBACK_RATE_RESTORE_WINDOW)) {
-                restorePlaybackRate()
-            }
-        }
+        const mediaRemaining = shortAdRemaining(video)
+        const remaining = countdownRemaining || mediaRemaining
 
         // One seek is enough for a visible ad break. Peacock can leave the same
         // overlay mounted after that seek; acting on it again is what caused the
         // extension to carry playback into the program.
         if (adSession.actionTaken) {
-            setAdPolling(
-                true,
-                acceleratedPlayback ? ACCELERATED_AD_POLL_INTERVAL : AD_POLL_INTERVAL,
-            )
+            setAdPolling(true)
             return
         }
 
-        // Wait for a real countdown or short ad duration. Blindly accelerating
-        // a long-form video while stale ad UI is visible can skip program time.
+        // A long-form stitched timeline requires a real countdown. Without one,
+        // only a short standalone ad supplies enough timing evidence to seek.
         if (remaining <= 0) {
             setAdPolling(true)
             return
@@ -223,22 +234,18 @@
 
         adSession.actionTaken = true
         if (jump <= 0.25) {
-            restorePlaybackRate()
             setAdPolling(true)
             return
         }
 
-        restorePlaybackRate()
         setAdPolling(true)
 
         try {
+            const shouldResume = !video.paused
             video.currentTime += jump
-            if (!video.paused) {
-                video.play().catch(() => {})
-            }
+            commitSeek(video, shouldResume)
         } catch {
-            // A server-enforced ad rejected seeking, so finish it at high speed instead.
-            accelerateAd(video)
+            // Leave playback unchanged if WebKit or Peacock rejects the seek.
         }
     }
 
@@ -258,7 +265,7 @@
         if (preferences.skipAds) {
             handleDetectedAd()
         } else {
-            restorePlaybackRate()
+            cancelOwnedResume()
             activeAdSession = null
             adInactiveSince = 0
             setAdPolling(false)
@@ -298,7 +305,7 @@
     }, true)
 
     addEventListener("pagehide", () => {
-        restorePlaybackRate()
+        cancelOwnedResume()
         activeAdSession = null
         adInactiveSince = 0
         setAdPolling(false)
